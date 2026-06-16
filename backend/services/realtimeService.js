@@ -10,13 +10,7 @@ let io;
 // solo a un sottoinsieme di client connessi.
 // user:ID → stanza personale, riceve solo gli aggiornamenti dei propri ordini
 // role:staff → stanza condivisa da tutto lo staff, riceve tutti gli ordini
-function getUserRoom(userId) {
-    return `user:${userId}`;
-}
-
-function getStaffRoom() {
-    return 'role:staff';
-}
+const STAFF_ROOM = 'role:staff';
 
 // Middleware Socket.IO: viene eseguito per ogni connessione prima di accettarla.
 // Funziona come requireAuth di Express, ma per i websocket.
@@ -24,7 +18,8 @@ function getStaffRoom() {
 // Se il token non è valido, next(new Error(...)) rifiuta la connessione.
 async function authenticateSocket(socket, next) {
     try {
-        const token = (socket.handshake.auth || {}).token;
+        const token = socket.handshake.auth?.token
+
 
         if (!token) return next(new Error('Token mancante'));
 
@@ -47,10 +42,10 @@ async function authenticateSocket(socket, next) {
 // Ogni utente entra nella propria stanza personale.
 // Lo staff entra anche nella stanza condivisa dello staff.
 function joinRealtimeRooms(socket) {
-    socket.join(getUserRoom(socket.userId));
+    socket.join(`user:${socket.userId}`);
 
     if (socket.user.role === 'staff') {
-        socket.join(getStaffRoom());
+        socket.join(STAFF_ROOM);
     }
 }
 
@@ -71,14 +66,14 @@ function initializeRealtime(server, corsOptions) {
 // Usato per notificare il cliente che il proprio ordine è cambiato.
 function emitToUser(userId, event, payload) {
     if (!io) return;
-    io.to(getUserRoom(userId)).emit(event, payload);
+    io.to(`user:${userId}`).emit(event, payload);
 }
 
 // Manda un evento a tutti gli account staff connessi.
 // Usato per notificare lo staff di un nuovo ordine o di un aggiornamento.
 function emitToStaff(event, payload) {
     if (!io) return;
-    io.to(getStaffRoom()).emit(event, payload);
+    io.to(STAFF_ROOM).emit(event, payload);
 }
 
 module.exports = { initializeRealtime, emitToUser, emitToStaff };

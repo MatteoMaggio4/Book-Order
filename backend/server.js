@@ -22,55 +22,17 @@ const app = express();
 // Per questo creiamo server con http.createServer(app), invece di usare solo app.listen().
 const server = http.createServer(app);
 
-const developmentOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-];
+const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : [];
 
-function normalizeOrigin(origin) {
-  // Trasforma "https://sito.com/pagina/" in "https://sito.com".
-  // Se origin non e' un URL valido, togliamo almeno gli spazi e lo slash finale.
-  try {
-    return new URL(origin).origin;
-  } catch {
-    return origin.trim().replace(/\/$/, '');
-  }
-}
-
-// FRONTEND_URL puo' contenere una o piu' origini separate da virgola.
-// Esempio: "https://book-order.vercel.app,http://localhost:3000".
-const allowedOrigins = [];
-const frontendUrls = (process.env.FRONTEND_URL || '').split(',');
-
-for (const origin of frontendUrls) {
-  const originPulita = origin.trim();
-
-  if (originPulita) {
-    allowedOrigins.push(normalizeOrigin(originPulita));
-  }
-}
-
-// In sviluppo permettiamo anche React su localhost.
-// In produzione usiamo solo FRONTEND_URL.
 if (process.env.NODE_ENV !== 'production') {
-  for (const origin of developmentOrigins) {
-    if (!allowedOrigins.includes(origin)) {
-      allowedOrigins.push(origin);
-    }
-  }
+  allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
 }
 
 const corsOptions = {
   origin(origin, callback) {
-    // Postman/curl spesso non inviano l'header Origin: li lasciamo passare.
-    if (!origin) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-
-    if (allowedOrigins.includes(normalizeOrigin(origin))) {
-      return callback(null, true);
-    }
-
     return callback(new Error('Origine non consentita da CORS'));
   },
   credentials: true,

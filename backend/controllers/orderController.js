@@ -4,8 +4,8 @@ const realtimeService = require('../services/realtimeService');
 // Invia una notifica real-time sia al cliente che ha creato l'ordine
 // sia a tutti gli account staff collegati in quel momento.
 // Questo garantisce che entrambi vedano l'aggiornamento senza ricaricare la pagina.
-function avvisaOrdine(ordine, evento, userId) {
-    const idCliente = userId || ordine.idUtente;
+function avvisaOrdine(ordine, evento) {
+    const idCliente = ordine.idUtente;
 
     realtimeService.emitToUser(idCliente, evento, {
         orderId: ordine._id,
@@ -63,7 +63,7 @@ async function createOrder(req, res) {
 
         // Avvisiamo in tempo reale: il cliente vede l'ordine confermato,
         // lo staff riceve il nuovo ordine sulla schermata senza ricaricare.
-        avvisaOrdine(ordine, 'orderCreated', req.userId);
+        avvisaOrdine(ordine, 'orderCreated');
 
         return res.status(201).json({ message: 'ORDINE EFFETTUATO CON SUCCESSO', ordine });
     } catch (errore) {

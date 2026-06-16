@@ -16,18 +16,18 @@ export function collegaRealtimeOrdini(token, onOrderChange) {
         auth: { token },
     });
 
-    socket.on('orderCreated', function gestisciOrdineCreato(data) {
+    socket.on('orderCreated',(data)=> {
         onOrderChange('created', data);
     });
 
-    socket.on('orderUpdated', function gestisciOrdineAggiornato(data) {
+    socket.on('orderUpdated', (data)=>{
         onOrderChange('updated', data);
     });
 
     // connect_error si verifica di solito quando l'access token è scaduto.
     // Proviamo a rinnovarlo con il refresh token e riconnettiamo il socket.
     // Il flag "active" evita di riconnettersi se il componente è già stato smontato.
-    socket.on('connect_error', async function gestisciErroreConnessione() {
+    socket.on('connect_error', async ()=> {
         const nuovoToken = await refreshAccessToken();
 
         if (!active || !nuovoToken) return;

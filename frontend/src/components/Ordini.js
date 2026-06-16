@@ -5,7 +5,7 @@ import { getAccessToken } from '../api/client';
 import { caricaOrdiniCliente } from '../api/orders';
 import { collegaRealtimeOrdini } from '../api/realtime';
 import OrdineCard from './OrdineCard';
-import { copiaOrdineConNuovoStato, formatPrice, totaleOrdine } from '../utils';
+import { formatPrice, calcolaTotale } from '../utils';
 
 function Ordini() {
     // ordini: array degli ordini del cliente, caricato dal backend.
@@ -43,10 +43,10 @@ function Ordini() {
     // Usiamo la versione funzionale di setOrdini (con callback) per lavorare sempre
     // sull'array più aggiornato, evitando il problema del "stale closure".
     function aggiornaOrdineLocale(ordineId, nuovoStato) {
-        setOrdini(function aggiornaLista(listaCorrente) {
-            return listaCorrente.map(function aggiornaOrdine(ordine) {
+        setOrdini((listaCorrente) => {
+            return listaCorrente.map((ordine) => {
                 if (ordine._id === ordineId) {
-                    return copiaOrdineConNuovoStato(ordine, nuovoStato);
+                    return { ...ordine, stato: nuovoStato };
                 }
                 return ordine;
             });
@@ -70,9 +70,7 @@ function Ordini() {
         function gestisciEventoRealtime(tipo, data) {
             if (tipo === 'updated') {
                 aggiornaOrdineLocale(data.orderId, data.stato);
-            } else {
-                caricaOrdini();
-            }
+            } 
         }
 
         // collegaRealtimeOrdini restituisce la funzione di disconnessione:
@@ -83,11 +81,12 @@ function Ordini() {
     // Aggiungiamo a ogni ordine un numero progressivo (1, 2, 3...) calcolato
     // dalla posizione nell'array. Gli ordini arrivano dal più recente, quindi
     // l'ordine più recente ha il numero più alto.
-    const ordiniConNumero = ordini.map(function aggiungiNumeroOrdine(ordine, index) {
+    const ordiniConNumero = ordini.map((ordine, index) =>{
         return { ...ordine, numeroOrdine: ordini.length - index };
+
     });
 
-    const ordiniInPreparazione = ordiniConNumero.filter(function soloInPreparazione(o) {
+    const ordiniInPreparazione = ordiniConNumero.filter((o)=>{
         return o.stato === 'In preparazione';
     });
 
@@ -143,7 +142,7 @@ function Ordini() {
                                         {ordiniInPreparazione.map((ordine) => (
                                             <Box key={ordine._id} sx={{ p: 1.5, borderRadius: '12px', backgroundColor: '#1d1d1d', border: '1px solid rgba(255,255,255,0.06)' }}>
                                                 <Typography sx={{ color: '#fff', fontWeight: 900 }}>Ordine #{ordine.numeroOrdine}</Typography>
-                                                <Typography sx={{ color: '#ff8400', fontWeight: 900, mt: 0.5 }}>{formatPrice(totaleOrdine(ordine))}</Typography>
+                                                <Typography sx={{ color: '#ff8400', fontWeight: 900, mt: 0.5 }}>{formatPrice(calcolaTotale(ordine.cartItems))}</Typography>
                                             </Box>
                                         ))}
                                     </Box>

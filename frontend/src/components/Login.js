@@ -34,9 +34,7 @@ function Login() {
             // Se email/password sono sbagliate o il server non risponde,
             // mostriamo il messaggio e poi lo togliamo dopo 3 secondi.
             setErrore(error.message || 'Errore di connessione al server');
-            setTimeout(function pulisciErrore() {
-                setErrore('');
-            }, 3000);
+            setTimeout(() => setErrore(''), 3000);
         }
     }
 

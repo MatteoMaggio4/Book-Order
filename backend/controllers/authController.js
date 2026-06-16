@@ -3,18 +3,6 @@ const Utente = require('../models/Utente');
 const RefreshToken = require('../models/RefreshToken');
 const tokenService = require('../services/tokenService');
 
-// Prepara i dati dell'utente da mandare al frontend.
-// Non includiamo mai la password, nemmeno quella hashata:
-// il frontend non ne ha bisogno e meno dati sensibili circolano, meglio è.
-function serializeUser(utente) {
-    return {
-        id: utente._id,
-        name: utente.name,
-        email: utente.email,
-        role: utente.role,
-    };
-}
-
 // Crea un refresh token, lo salva nel database (hashato) e lo manda al browser come cookie.
 // Separiamo questa logica in una funzione perché viene usata sia nel login che nel refresh.
 async function issueRefreshToken(res, utente) {
@@ -50,8 +38,7 @@ async function register(req, res) {
             return res.status(400).json({ message: 'Compila tutti i campi' });
         }
 
-        let requestedRole = 'cliente';
-        if (role === 'staff') requestedRole = 'staff';
+        const requestedRole = role === 'staff' ? 'staff' : 'cliente';
 
         // Il codice staff è un segreto condiviso solo col personale del ristorante.
         // Senza di esso non si può creare un account staff dalla registrazione pubblica.
@@ -83,7 +70,7 @@ async function register(req, res) {
 
         return res.status(201).json({
             message: 'Utente registrato',
-            utente: serializeUser(nuovoUtente),
+            utente: { id: nuovoUtente._id, name: nuovoUtente.name, email: nuovoUtente.email, role: nuovoUtente.role },
         });
     } catch (errore) {
         return res.status(500).json({ message: 'Errore durante la registrazione' });
@@ -122,7 +109,7 @@ async function login(req, res) {
         return res.status(200).json({
             message: 'Autenticazione effettuata',
             accessToken,
-            utente: serializeUser(utente),
+            utente: { id: utente._id, name: utente.name, email: utente.email, role: utente.role },
         });
     } catch (errore) {
         return res.status(500).json({ message: 'Errore del server' });

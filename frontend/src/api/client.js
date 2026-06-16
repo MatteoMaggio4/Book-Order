@@ -19,13 +19,6 @@ export function clearAccessToken() {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
 }
 
-// Prova a leggere il JSON della risposta HTTP.
-// Se il server manda una risposta vuota (es. 204 No Content), .json() lancia un errore:
-// il catch lo intercetta e restituisce un oggetto vuoto per non far crashare il frontend.
-export async function readJson(risposta) {
-    return risposta.json().catch(function() { return {}; });
-}
-
 // Chiede al backend un nuovo access token usando il refresh token nel cookie.
 // Il browser manda il cookie automaticamente grazie a credentials: 'include'.
 // Il backend verifica il cookie, revoca il vecchio refresh token ed emette un nuovo paio.
@@ -40,7 +33,7 @@ export async function refreshAccessToken() {
         return null;
     }
 
-    const dati = await readJson(risposta);
+    const dati = await risposta.json();
 
     if (dati.accessToken) {
         saveAccessToken(dati.accessToken);
@@ -48,39 +41,6 @@ export async function refreshAccessToken() {
     }
 
     return null;
-}
-
-function buildHeaders(options, token) {
-    const headers = {};
-
-    if (options.headers) {
-        for (const nomeHeader in options.headers) {
-            headers[nomeHeader] = options.headers[nomeHeader];
-        }
-    }
-
-    if (options.body && !headers['Content-Type']) {
-        headers['Content-Type'] = 'application/json';
-    }
-
-    // Il backend si aspetta il token nell'header Authorization: Bearer <token>
-    if (token) {
-        headers.Authorization = `Bearer ${token}`;
-    }
-
-    return headers;
-}
-
-function buildRequestOptions(options, token) {
-    const requestOptions = {
-        method: options.method || 'GET',
-        credentials: 'include',
-        headers: buildHeaders(options, token),
-    };
-
-    if (options.body) requestOptions.body = options.body;
-
-    return requestOptions;
 }
 
 // apiFetch è il nostro "fetch intelligente":
@@ -91,8 +51,18 @@ function buildRequestOptions(options, token) {
 // In questo modo l'utente non si accorge mai della scadenza del token.
 export async function apiFetch(path, options = {}) {
     const url = `${API_BASE_URL}${path}`;
+    const headers = options.body ? { 'Content-Type': 'application/json' } : {};
 
-    const primaRisposta = await fetch(url, buildRequestOptions(options, getAccessToken()));
+    const baseOptions = {
+        method: options.method || 'GET',
+        credentials: 'include',
+        ...(options.body ? { body: options.body } : {}),
+    };
+
+    const primaRisposta = await fetch(url, {
+        ...baseOptions,
+        headers: { ...headers, Authorization: `Bearer ${getAccessToken()}` },
+    });
 
     if (primaRisposta.status !== 401) {
         return primaRisposta;
@@ -104,5 +74,8 @@ export async function apiFetch(path, options = {}) {
         return primaRisposta;
     }
 
-    return fetch(url, buildRequestOptions(options, nuovoToken));
+    return fetch(url, {
+        ...baseOptions,
+        headers: { ...headers, Authorization: `Bearer ${nuovoToken}` },
+    });
 }

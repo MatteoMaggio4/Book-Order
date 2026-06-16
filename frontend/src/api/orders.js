@@ -1,10 +1,10 @@
-import { apiFetch, readJson } from './client';
+import { apiFetch} from './client';
 
 async function requestJson(path, options = {}, fallbackMessage = 'Richiesta non riuscita') {
     // Funzione comune per tutte le chiamate sugli ordini.
     // Fa la richiesta, legge il JSON e gestisce gli errori.
     const risposta = await apiFetch(path, options);
-    const dati = await readJson(risposta);
+    const dati = await risposta.json();
 
     if (!risposta.ok) {
         throw new Error(dati.message || fallbackMessage);

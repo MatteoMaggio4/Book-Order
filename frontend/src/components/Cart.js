@@ -31,13 +31,16 @@ function Cart() {
         // Validazione lato client: feedback immediato senza aspettare il server.
         if (!numeroTavolo) {
             setErrore('Seleziona il tavolo');
+            setTimeout(() => setErrore(''), 3000);
             return;
         }
 
         if (!getAccessToken()) {
             setErrore('Devi effettuare il login prima di ordinare');
+            setTimeout(() => setErrore(''), 3000);
             return;
         }
+        
 
         try {
             const dati = await creaOrdine(cartItems, numeroTavolo);
@@ -45,7 +48,7 @@ function Cart() {
             setSuccesso(dati.message || 'ORDINE EFFETTUATO CON SUCCESSO');
         } catch (e) {
             setErrore(e.message || 'Ordine non registrato. Controlla la connessione e riprova.');
-            setTimeout(function pulisciErrore() { setErrore(''); }, 3000);
+            setTimeout(() => setErrore(''), 3000);
         }
     }
 
@@ -107,30 +110,6 @@ function Cart() {
                                             background: '#00000069',
                                             borderRadius: 5,
                                             border: '2px solid #ff7300',
-                                            '& .MuiInputLabel-root': { color: '#ffffff', fontWeight: 800 },
-                                            '& .MuiInputLabel-root.Mui-focused': { color: '#ff8400' },
-                                            '& .MuiInputBase-root': { color: '#ffffff' },
-                                            '& .MuiSelect-icon': { color: '#ff8400' },
-                                            '& .MuiInput-root:before': { borderBottomColor: 'rgba(255,255,255,0.25)' },
-                                            '& .MuiInput-root:hover:before': { borderBottomColor: '#ff8400' },
-                                            '& .MuiInput-root:after': { borderBottomColor: '#ff8400' },
-                                        }}
-                                        slotProps={{
-                                            select: {
-                                                MenuProps: {
-                                                    slotProps: {
-                                                        paper: {
-                                                            sx: {
-                                                                backgroundColor: '#181818',
-                                                                borderRadius: '14px',
-                                                                '& .MuiMenuItem-root': { color: '#fff', fontWeight: 800 },
-                                                                '& .MuiMenuItem-root:hover': { backgroundColor: 'rgba(255,132,0,0.18)' },
-                                                                '& .MuiMenuItem-root.Mui-selected': { backgroundColor: 'rgba(255,132,0,0.28)', color: '#ff8400' },
-                                                            },
-                                                        },
-                                                    },
-                                                },
-                                            },
                                         }}
                                     >
                                         {/* .map() sull'array tavoli per creare i MenuItem senza ripetere il codice 6 volte */}

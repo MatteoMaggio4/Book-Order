@@ -4,28 +4,18 @@ import { createContext, useContext, useState } from 'react';
 // Lo usiamo per far leggere lo stesso carrello a Menu, Navbar e Cart.
 const CartContext = createContext(null);
 
-function creaRigaCarrello(prodotto, quantita) {
-    // Copiamo i dati del prodotto e aggiungiamo la quantita scelta.
-    return {
-        ...prodotto,
-        quantita,
-    };
-}
-
 function aggiungiProdotto(lista, prodotto) {
-    const prodottoGiaPresente = lista.find(function cercaProdotto(item) {
-        return item.id === prodotto.id;
-    });
+    const prodottoGiaPresente = lista.find((o)=> o.id===prodotto.id);
 
     if (!prodottoGiaPresente) {
-        return [...lista, creaRigaCarrello(prodotto, 1)];
+        return [...lista, { ...prodotto, quantita: 1 }];
     }
 
     // map crea un nuovo array.
     // Cambiamo solo il prodotto cliccato, gli altri restano uguali.
-    return lista.map(function aumentaQuantita(item) {
+    return lista.map((item)=> {
         if (item.id === prodotto.id) {
-            return creaRigaCarrello(item, item.quantita + 1);
+            return { ...item, quantita: item.quantita + 1 };
         }
 
         return item;
@@ -33,9 +23,7 @@ function aggiungiProdotto(lista, prodotto) {
 }
 
 function rimuoviUnaUnita(lista, prodottoId) {
-    const prodottoGiaPresente = lista.find(function cercaProdotto(item) {
-        return item.id === prodottoId;
-    });
+   const prodottoGiaPresente = lista.find((o)=> o.id===prodottoId);
 
     if (!prodottoGiaPresente) {
         return lista;
@@ -43,14 +31,14 @@ function rimuoviUnaUnita(lista, prodottoId) {
 
     if (prodottoGiaPresente.quantita === 1) {
         // filter crea un nuovo array tenendo solo i prodotti diversi da quello rimosso.
-        return lista.filter(function rimuoviProdotto(item) {
+        return lista.filter((item)=>  {
             return item.id !== prodottoId;
         });
     }
 
-    return lista.map(function diminuisciQuantita(item) {
+    return lista.map((item)=> {
         if (item.id === prodottoId) {
-            return creaRigaCarrello(item, item.quantita - 1);
+            return { ...item, quantita: item.quantita - 1 };
         }
 
         return item;
@@ -62,19 +50,19 @@ export function CartProvider({ children }) {
     const [cartItems, setCartItems] = useState([]);
 
     function addItem(prodotto) {
-        setCartItems(function aggiornaCarrello(listaCorrente) {
+        setCartItems((listaCorrente) =>{
             return aggiungiProdotto(listaCorrente, prodotto);
         });
     }
 
     function decreaseItem(prodottoId) {
-        setCartItems(function aggiornaCarrello(listaCorrente) {
+        setCartItems((listaCorrente) =>{
             return rimuoviUnaUnita(listaCorrente, prodottoId);
         });
     }
 
     function getQuantity(prodottoId) {
-        const prodotto = cartItems.find(function cercaProdotto(item) {
+        const prodotto = cartItems.find((item) =>{
             return item.id === prodottoId;
         });
 
@@ -86,7 +74,7 @@ export function CartProvider({ children }) {
     }
 
     // reduce somma tutte le quantita e restituisce un solo numero.
-    const totalQuantity = cartItems.reduce(function sommaQuantita(totale, item) {
+    const totalQuantity = cartItems.reduce((totale, item) => {
         return totale + item.quantita;
     }, 0);
 

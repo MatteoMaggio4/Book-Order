@@ -19,16 +19,3 @@ export function calcolaTotale(items) {
     }, 0);
 }
 
-// Wrapper comodo per calcolare il totale di un ordine completo.
-export function totaleOrdine(ordine) {
-    return calcolaTotale(ordine.cartItems);
-}
-
-// Restituisce una copia dell'ordine con il campo stato aggiornato.
-// Lo spread operator (...ordine) copia tutti i campi esistenti,
-// poi stato: nuovoStato sovrascrive solo il campo stato.
-// Non modifichiamo mai l'oggetto originale: React rileva i cambiamenti
-// solo su oggetti nuovi, non su modifiche dirette a quelli esistenti.
-export function copiaOrdineConNuovoStato(ordine, nuovoStato) {
-    return { ...ordine, stato: nuovoStato };
-}

@@ -1,30 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Grow, Box, AppBar, Toolbar, Typography, IconButton, Button, Popover, Badge } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Button } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useCart } from './CartContext';
 import { clearAccessToken, getAccessToken } from '../api/client';
 import { caricaUtenteCorrente, logoutUtente } from '../api/auth';
-import { calcolaTotale, formatPrice } from '../utils';
 
 function Navbar() {
-    const { cartItems, totalQuantity } = useCart();
     const [utente, setUtente] = useState(null);
     const location = useLocation();
-    const [cartAnchor, setCartAnchor] = useState(null);
     const navigate = useNavigate();
-
-    // Apre il popover del carrello ancorandolo al bottone cliccato.
-    // event.currentTarget è l'elemento DOM del bottone, usato da Popover per sapere dove posizionarsi.
-    function handleCartClick(event) {
-        setCartAnchor(event.currentTarget);
-    }
-
-    function handleCartClose() {
-        setCartAnchor(null);
-    }
 
     // Verifica se l'utente ha una sessione attiva chiamando /api/auth/me.
     // Se il token è assente o scaduto (e il refresh fallisce), imposta utente a null.
@@ -66,17 +52,9 @@ function Navbar() {
         setUtente(null);
     }
 
-    const subtotal = calcolaTotale(cartItems);
-
     // isStaff determina quali elementi mostrare nella navbar.
     // Se l'utente non esiste, isStaff resta false.
-    let isStaff = false;
-
-    if (utente && utente.role === 'staff') {
-        isStaff = true;
-    }
-
-    const cartOpen = Boolean(cartAnchor);
+    const isStaff = utente?.role === 'staff';
 
     return (
         <AppBar position="fixed" color="warning" sx={{ maxWidth: '100%', background: 'linear-gradient(135deg, #000000 0%, #1c1816 50%, #000000 100%)' }}>
@@ -108,98 +86,10 @@ function Navbar() {
                 )}
 
                 {!isStaff && (
-                    <IconButton color="inherit" size="large" onClick={handleCartClick}>
-                        {/* Badge mostra il numero di articoli nel carrello sopra l'icona */}
-                        <Badge
-                            badgeContent={totalQuantity}
-                            color="warning"
-                            sx={{
-                                '& .MuiBadge-badge': {
-                                    backgroundColor: '#ff8400',
-                                    color: '#111',
-                                    fontWeight: 900,
-                                },
-                            }}
-                        >
-                            <ShoppingCartIcon />
-                        </Badge>
+                    <IconButton color="inherit" size="large" component={Link} to="/cart">
+                        <ShoppingCartIcon />
                     </IconButton>
                 )}
-
-                {/* Popover è un overlay ancorato al bottone del carrello che mostra un'anteprima degli articoli */}
-                <Popover
-                    slotProps={{
-                        paper: {
-                            sx: {
-                                mt: 1,
-                                width: { xs: 'calc(100vw - 32px)', sm: 340 },
-                                backgroundColor: '#151515',
-                                color: '#fff',
-                                border: '1px solid rgba(255, 132, 0, 0.45)',
-                                borderRadius: '14px',
-                                boxShadow: '0 18px 45px rgba(0,0,0,0.55)',
-                                overflow: 'hidden',
-                            },
-                        },
-                    }}
-                    TransitionComponent={Grow}
-                    transitionDuration={180}
-                    open={cartOpen}
-                    anchorEl={cartAnchor}
-                    onClose={handleCartClose}
-                    disableScrollLock
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                    <Box sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: 20 }}>Carrello</Typography>
-                            <Typography sx={{ color: '#ff8400', fontWeight: 700, fontSize: 13 }}>{totalQuantity} articoli</Typography>
-                        </Box>
-
-                        <Box sx={{ my: 2, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
-
-                        {totalQuantity ? (
-                            <Box sx={{ maxHeight: 260, overflowY: 'auto', pr: 0.5 }}>
-                                {cartItems.map((item) => (
-                                    <Box key={item.id} sx={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 1.5, alignItems: 'center', py: 1 }}>
-                                        <Box sx={{ minWidth: 0 }}>
-                                            <Typography sx={{ fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                {item.nome}
-                                            </Typography>
-                                            <Typography sx={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, mt: 0.3 }}>
-                                                {item.quantita} x {formatPrice(item.prezzo)}
-                                            </Typography>
-                                        </Box>
-                                        <Typography sx={{ color: '#ff8400', fontWeight: 900, fontSize: 14 }}>
-                                            {formatPrice(item.quantita * item.prezzo)}
-                                        </Typography>
-                                    </Box>
-                                ))}
-                            </Box>
-                        ) : (
-                            <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, textAlign: 'center', py: 3 }}>
-                                Il carrello è vuoto
-                            </Typography>
-                        )}
-
-                        <Box sx={{ my: 2, height: '1px', backgroundColor: 'rgba(255,255,255,0.08)' }} />
-
-                        {totalQuantity > 0 && (
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontWeight: 700 }}>Totale</Typography>
-                                <Typography sx={{ color: '#ff8400', fontWeight: 900, fontSize: 18 }}>{formatPrice(subtotal)}</Typography>
-                            </Box>
-                        )}
-
-                        <Button fullWidth variant="contained" component={Link} to="/cart" onClick={handleCartClose} sx={{
-                            backgroundColor: '#ff8400', color: '#111', fontWeight: 900,
-                            borderRadius: '10px', '&:hover': { backgroundColor: '#ff9d2e' },
-                        }}>
-                            Vai all'ordine
-                        </Button>
-                    </Box>
-                </Popover>
 
                 {/* Se l'utente è loggato mostra "Esci", altrimenti l'icona per andare al login */}
                 {utente ? (
