@@ -4,14 +4,10 @@ const orderController = require('../controllers/orderController');
 const { requireAuth } = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
 
-const orderAuth = requireAuth({
-  missingMessage: 'Devi effettuare il login per vedere gli ordini',
-  invalidMessage: 'Devi effettuare il login per vedere gli ordini',
-});
 
 // GET /api/order
 // Cliente loggato: vede solo i propri ordini.
-router.get('', orderAuth, orderController.getMyOrders);
+router.get('', requireAuth(), orderController.getMyOrders);
 
 // POST /api/order
 // Cliente loggato: crea un ordine dal carrello.

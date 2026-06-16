@@ -40,7 +40,7 @@ function StaffOrders() {
     function aggiornaOrdineLocale(ordineId, nuovoStato) {
         setOrdini((listaCorrente)=> {
             
-            return listaCorrente.map(function aggiornaOrdine(ordine) {
+            return listaCorrente.map((ordine) => {
                 if (ordine._id === ordineId) {
                     return { ...ordine, stato: nuovoStato };
                 }

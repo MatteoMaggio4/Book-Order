@@ -54,7 +54,7 @@ function Menu() {
     // filter crea un nuovo array con solo i prodotti della categoria selezionata.
     // Il confronto diretto funziona perché categoriaSelezionata viene sempre
     // da un click sui pulsanti, quindi è sempre una stringa identica a quella nel prodotto.
-    const prodottiFiltrati = prodottiMenu.filter(function prodottoDellaCategoria(p) {
+    const prodottiFiltrati = prodottiMenu.filter((p)=>{
         return p.categoria === categoriaSelezionata;
     });
 

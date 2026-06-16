@@ -17,7 +17,7 @@ const coloriStato = {
 // stessa logica, stesso aspetto, zero duplicazione di codice.
 function StatoBadge({ stato }) {
     // Se lo stato non è tra quelli conosciuti, usiamo un grigio neutro.
-    const colori = coloriStato[stato] || { backgroundColor: '#333', color: '#fff' };
+    const colori = coloriStato[stato];
 
     return (
         <Typography sx={{

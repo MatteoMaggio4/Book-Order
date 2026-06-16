@@ -36,7 +36,7 @@ function Register() {
         } catch (error) {
             setErrore(error.message || 'Errore di connessione al server');
 
-            setTimeout(function pulisciErrore() {
+            setTimeout(() => {
                 setErrore('');
             }, 3000);
         }
